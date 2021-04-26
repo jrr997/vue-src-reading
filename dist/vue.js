@@ -4,10 +4,10 @@
  * Released under the MIT License.
  */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('karma/lib/constants')) :
-  typeof define === 'function' && define.amd ? define(['karma/lib/constants'], factory) :
-  (global = global || self, global.Vue = factory(global.constants));
-}(this, (function (constants) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global = global || self, global.Vue = factory());
+}(this, (function () { 'use strict';
 
   /*  */
 
@@ -925,6 +925,7 @@
     this.vmCount = 0;
     // def()在lang.js中，是对definedProperty()的封装
     def(value, '__ob__', this); // 给value添加一个__ob__属性，值为Observer实例
+    console.log(this);
     if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
         protoAugment(value, arrayMethods);
@@ -933,6 +934,7 @@
       }
       this.observeArray(value);
     } else {
+      // 注意此时的value身上还有一个__ob__属性(不可枚举)
       this.walk(value); // value为对象时走这里
     }
   };
@@ -1001,7 +1003,7 @@
       Object.isExtensible(value) &&
       !value._isVue
     ) {
-      ob = new Observer(value);
+      ob = new Observer(value); // initData()的时候走这里
     }
     if (asRootData && ob) {
       ob.vmCount++;
@@ -1027,22 +1029,22 @@
     }
 
     // cater for pre-defined getter/setters
-    var getter = property && property.get;
+    var getter = property && property.get; // 默认情况下getter和setter都是undefined
     var setter = property && property.set;
-    if ((!getter || setter) && arguments.length === 2) { // 如果只传了key和val且这个属性没有人为设置过getter，则直接给val赋值
+    if ((!getter || setter) && arguments.length === 2) { // 初始化时走这里
       val = obj[key];
     }
 
-    var childOb = !shallow && observe(val); // 继续监听val中的属性(递归)
+    var childOb = !shallow && observe(val); // 初始化时走这里，继续监听val中的属性(递归)
     Object.defineProperty(obj, key, {
       enumerable: true,
       configurable: true,
       get: function reactiveGetter () {
-        var value = getter ? getter.call(obj) : val;
+        var value = getter ? getter.call(obj) : val; // value = val
         // 在创建vnode前会创建一个Watcher实例并压入tatget栈中，此时的target就是这个watcher，渲染过程中会访问到一些属性，从而触发这些属性的getter。
         // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
-        if (Dep.target) {
-          dep.depend(); // 把watcher
+        if (Dep.target) { // 这里为true说明在收集依赖的过程中，因此下一行代码的作用是收集依赖
+          dep.depend();
           if (childOb) {
             childOb.dep.depend();
             if (Array.isArray(value)) {
@@ -1067,10 +1069,10 @@
         if (setter) {
           setter.call(obj, newVal);
         } else {
-          val = newVal;
+          val = newVal; // 初始化默认情况下走这里(没有人为重写setter的情况下)
         }
-        childOb = !shallow && observe(newVal);
-        dep.notify();
+        childOb = !shallow && observe(newVal); // 新的值加入响应式
+        dep.notify(); // 通知依赖更新
       }
     });
   }
@@ -4616,6 +4618,7 @@
   };
 
   /*  */
+  // import { LOG_INFO } from 'karma/lib/constants'
 
   var sharedPropertyDefinition = {
     enumerable: true,
@@ -4699,11 +4702,11 @@
   }
 
   function initData (vm) {
-    var data = vm.$options.data;
-    data = vm._data = typeof data === 'function'
+    var data = vm.$options.data; // data是一个function
+    data = vm._data = typeof data === 'function' // 这行代码过后data是一个对象
       ? getData(data, vm)
       : data || {};
-    if (!isPlainObject(data)) {
+    if (!isPlainObject(data)) { // 正常情况下不走这里
       data = {};
        warn(
         'data functions should return an object:\n' +
@@ -4738,11 +4741,12 @@
     }
     // observe data
     // targetStack为空
-    observe(data, true /* asRootData */);
+    observe(data, true /* asRootData */); // 响应式
     // console.log(vm);
     // debugger
   }
 
+  // 返回一个对象，getData的作用是把options.data这个函数变成对象
   function getData (data, vm) {
     // #7573 disable dep collection when invoking data getters
     pushTarget(); // targetStack中有一个undefinded入栈

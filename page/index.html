@@ -15,13 +15,20 @@
     data() {
       return {
         name: 'zackchang',
-        age: 20
+        age: 20,
+        obj: {
+          school: 'gzhu'
+        }
       }
     },
     created() {
       console.log('created');
-    }
+    },
+    mounted() {
+      console.dir(this.name);
+      console.log(this.name instanceof Object); // false
+    },
   }).$mount('#app');
-  // console.log(vue); // 成功引入
+  console.log(vue); // 成功引入
 </script>
 </html>

@@ -45,6 +45,7 @@ export class Observer {
     this.vmCount = 0
     // def()在lang.js中，是对definedProperty()的封装
     def(value, '__ob__', this) // 给value添加一个__ob__属性，值为Observer实例
+    console.log(this);
     if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
         protoAugment(value, arrayMethods)
@@ -53,6 +54,7 @@ export class Observer {
       }
       this.observeArray(value)
     } else {
+      // 注意此时的value身上还有一个__ob__属性(不可枚举)
       this.walk(value) // value为对象时走这里
     }
   }
@@ -122,7 +124,7 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
     Object.isExtensible(value) &&
     !value._isVue
   ) {
-    ob = new Observer(value)
+    ob = new Observer(value) // initData()的时候走这里
   }
   if (asRootData && ob) {
     ob.vmCount++
@@ -148,22 +150,22 @@ export function defineReactive (
   }
 
   // cater for pre-defined getter/setters
-  const getter = property && property.get
+  const getter = property && property.get // 默认情况下getter和setter都是undefined
   const setter = property && property.set
-  if ((!getter || setter) && arguments.length === 2) { // 如果只传了key和val且这个属性没有人为设置过getter，则直接给val赋值
+  if ((!getter || setter) && arguments.length === 2) { // 初始化时走这里
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val) // 继续监听val中的属性(递归)
+  let childOb = !shallow && observe(val) // 初始化时走这里，继续监听val中的属性(递归)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
-      const value = getter ? getter.call(obj) : val
+      const value = getter ? getter.call(obj) : val // value = val
       // 在创建vnode前会创建一个Watcher实例并压入tatget栈中，此时的target就是这个watcher，渲染过程中会访问到一些属性，从而触发这些属性的getter。
       // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
-      if (Dep.target) {
-        dep.depend() // 把watcher
+      if (Dep.target) { // 这里为true说明在收集依赖的过程中，因此下一行代码的作用是收集依赖
+        dep.depend()
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
@@ -188,10 +190,10 @@ export function defineReactive (
       if (setter) {
         setter.call(obj, newVal)
       } else {
-        val = newVal
+        val = newVal // 初始化默认情况下走这里(没有人为重写setter的情况下)
       }
-      childOb = !shallow && observe(newVal)
-      dep.notify()
+      childOb = !shallow && observe(newVal) // 新的值加入响应式
+      dep.notify() // 通知依赖更新
     }
   })
 }

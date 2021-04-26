@@ -111,11 +111,11 @@ function initProps (vm: Component, propsOptions: Object) {
 }
 
 function initData (vm: Component) {
-  let data = vm.$options.data
-  data = vm._data = typeof data === 'function'
+  let data = vm.$options.data // data是一个function
+  data = vm._data = typeof data === 'function' // 这行代码过后data是一个对象
     ? getData(data, vm)
     : data || {}
-  if (!isPlainObject(data)) {
+  if (!isPlainObject(data)) { // 正常情况下不走这里
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
       'data functions should return an object:\n' +
@@ -150,11 +150,12 @@ function initData (vm: Component) {
   }
   // observe data
   // targetStack为空
-  observe(data, true /* asRootData */)
+  observe(data, true /* asRootData */) // 响应式
   // console.log(vm);
   // debugger
 }
 
+// 返回一个对象，getData的作用是把options.data这个函数变成对象
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
   pushTarget() // targetStack中有一个undefinded入栈
