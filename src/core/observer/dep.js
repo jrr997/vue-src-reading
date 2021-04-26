@@ -19,11 +19,11 @@ export default class Dep {
     this.id = uid++
     this.subs = []
   }
-
+  // 增加依赖
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
-
+  // 删除依赖
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
@@ -52,7 +52,7 @@ export default class Dep {
 // The current target watcher being evaluated.
 // This is globally unique because only one watcher
 // can be evaluated at a time.
-Dep.target = null
+Dep.target = null // 这是Dep构造函数的一个静态属性，全局唯一
 const targetStack = []
 
 export function pushTarget (target: ?Watcher) {

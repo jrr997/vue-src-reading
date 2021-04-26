@@ -49,9 +49,9 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
-    initLifecycle(vm)
-    initEvents(vm)
-    initRender(vm)
+    initLifecycle(vm) // 初始化了实例vm的$parent、$root、$children = []、$ref= {} ，初始化了实例上一些与生命周期相关的属性如vm._inactive...
+    initEvents(vm) // 初始化实例的vm._events = null 和 vm._hasHookEvent = false，在vm中注册、更新父组件通过v-on监听的子组件vm的事件
+    initRender(vm) // 初始化实例的vm._vnode、_staticTrees
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
     initState(vm)
@@ -65,7 +65,7 @@ export function initMixin (Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
-    if (vm.$options.el) {
+    if (vm.$options.el) { // 挂载
       vm.$mount(vm.$options.el)
     }
   }

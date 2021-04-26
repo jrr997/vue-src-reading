@@ -27,6 +27,7 @@ import {
   isServerRendering,
   isReservedAttribute
 } from '../util/index'
+// import { LOG_INFO } from 'karma/lib/constants'
 
 const sharedPropertyDefinition = {
   enumerable: true,
@@ -148,12 +149,15 @@ function initData (vm: Component) {
     }
   }
   // observe data
+  // targetStack为空
   observe(data, true /* asRootData */)
+  // console.log(vm);
+  // debugger
 }
 
 export function getData (data: Function, vm: Component): any {
   // #7573 disable dep collection when invoking data getters
-  pushTarget()
+  pushTarget() // targetStack中有一个undefinded入栈
   try {
     return data.call(vm, vm)
   } catch (e) {
@@ -321,7 +325,7 @@ export function stateMixin (Vue: Class<Component>) {
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
   const dataDef = {}
-  dataDef.get = function () { return this._data }
+  dataDef.get = function () { return this._data } // 以后用get方法给dataDef赋值
   const propsDef = {}
   propsDef.get = function () { return this._props }
   if (process.env.NODE_ENV !== 'production') {

@@ -43,15 +43,16 @@ export default class Watcher {
   value: any;
 
   constructor (
-    vm: Component,
-    expOrFn: string | Function,
-    cb: Function,
-    options?: ?Object,
-    isRenderWatcher?: boolean
+    vm: Component, // 需要渲染的实例
+    expOrFn: string | Function, // updateComponent
+    cb: Function, // noop(空函数)
+    options?: ?Object, // {before: function()},触发beforeUptate钩子函数。只有挂载过了才会执行，还未挂载时不会执行。
+    isRenderWatcher?: boolean //true
   ) {
     this.vm = vm
-    if (isRenderWatcher) {
+    if (isRenderWatcher) { // 挂载时执行，这里会执行
       vm._watcher = this
+      console.log(vm._watcher);
     }
     vm._watchers.push(this)
     // options
@@ -76,7 +77,7 @@ export default class Watcher {
       ? expOrFn.toString()
       : ''
     // parse expression for getter
-    if (typeof expOrFn === 'function') {
+    if (typeof expOrFn === 'function') { // 走这里
       this.getter = expOrFn
     } else {
       this.getter = parsePath(expOrFn)
@@ -90,6 +91,7 @@ export default class Watcher {
         )
       }
     }
+    // 执行this.get()
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -99,11 +101,11 @@ export default class Watcher {
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
-    pushTarget(this)
+    pushTarget(this) // 这里的this是Watcher的实例，身上有各种东西
     let value
     const vm = this.vm
     try {
-      value = this.getter.call(vm, vm)
+      value = this.getter.call(vm, vm) // 执行updateComponent()，返回undefined，这里触发getter收集依赖
     } catch (e) {
       if (this.user) {
         handleError(e, vm, `getter for watcher "${this.expression}"`)
@@ -119,13 +121,14 @@ export default class Watcher {
       popTarget()
       this.cleanupDeps()
     }
+
     return value
   }
 
   /**
    * Add a dependency to this directive.
    */
-  addDep (dep: Dep) {
+  addDep (dep: Dep) { // 这里的this指的是watcher
     const id = dep.id
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)

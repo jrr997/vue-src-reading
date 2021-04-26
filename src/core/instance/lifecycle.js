@@ -33,7 +33,8 @@ export function initLifecycle (vm: Component) {
   const options = vm.$options
 
   // locate first non-abstract parent
-  let parent = options.parent
+  let parent = options.parent // undefined
+  // 根vue不走这个if
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent
@@ -41,8 +42,8 @@ export function initLifecycle (vm: Component) {
     parent.$children.push(vm)
   }
 
-  vm.$parent = parent
-  vm.$root = parent ? parent.$root : vm
+  vm.$parent = parent // undefined
+  vm.$root = parent ? parent.$root : vm // vm
 
   vm.$children = []
   vm.$refs = {}
@@ -185,9 +186,9 @@ export function mountComponent (
       mark(endTag)
       measure(`vue ${name} patch`, startTag, endTag)
     }
-  } else {
+  } else { // 这里只是赋值，未执行，会在new Watcher中执行
     updateComponent = () => {
-      vm._update(vm._render(), hydrating)
+      vm._update(vm._render(), hydrating) // vm._render()返回vnode，这个过程中会访问vm中的数据，触发getter
     }
   }
 
@@ -336,11 +337,11 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
-  const handlers = vm.$options[hook]
+  const handlers = vm.$options[hook] // 拿到options中的生命周期函数，如果有mixin，这里拿到的可能有多个生命周期函数
   const info = `${hook} hook`
   if (handlers) {
     for (let i = 0, j = handlers.length; i < j; i++) {
-      invokeWithErrorHandling(handlers[i], vm, null, vm, info)
+      invokeWithErrorHandling(handlers[i], vm, null, vm, info) // 执行钩子函数，包含错误处理
     }
   }
   if (vm._hasHookEvent) {

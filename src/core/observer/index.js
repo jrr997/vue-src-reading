@@ -43,8 +43,9 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    def(value, '__ob__', this)
-    if (Array.isArray(value)) {
+    // def()在lang.js中，是对definedProperty()的封装
+    def(value, '__ob__', this) // 给value添加一个__ob__属性，值为Observer实例
+    if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
         protoAugment(value, arrayMethods)
       } else {
@@ -52,7 +53,7 @@ export class Observer {
       }
       this.observeArray(value)
     } else {
-      this.walk(value)
+      this.walk(value) // value为对象时走这里
     }
   }
 
@@ -139,7 +140,7 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
-  const dep = new Dep()
+  const dep = new Dep() // dep.subs数组用来收集依赖
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
@@ -149,18 +150,20 @@ export function defineReactive (
   // cater for pre-defined getter/setters
   const getter = property && property.get
   const setter = property && property.set
-  if ((!getter || setter) && arguments.length === 2) {
+  if ((!getter || setter) && arguments.length === 2) { // 如果只传了key和val且这个属性没有人为设置过getter，则直接给val赋值
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val) // 继续监听val中的属性(递归)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
+      // 在创建vnode前会创建一个Watcher实例并压入tatget栈中，此时的target就是这个watcher，渲染过程中会访问到一些属性，从而触发这些属性的getter。
+      // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
       if (Dep.target) {
-        dep.depend()
+        dep.depend() // 把watcher
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
