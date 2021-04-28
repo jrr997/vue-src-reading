@@ -6,18 +6,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
   <script src="../dist/vue.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script> -->
 </head>
 <body>
- <div id="app"><p>{{name}}</p></div>
+ <div id="app">
+   <template v-if="isShow">
+    <p>{{name}}</p><p>school:{{newSchool}}</p>
+  </template>
+  <template v-else>
+    <p>{{ age }}</p>
+  </template>
+  <button v-on:click="isShow = !isShow">show</button>
+  <button v-on:click="age += 1">Add 1</button>
+  </div>
 </body>
 <script>
   const vue = new Vue({
     data() {
       return {
-        name: 'zackchang',
-        age: 20,
-        obj: {
-          school: 'gzhu'
+        isShow: false,
+        name: 'zackchang', // dep.id:3
+        age: 20, // 4
+        obj: { // 5
+          school: 'gzhu' //7
         }
       }
     },
@@ -25,8 +36,17 @@
       console.log('created');
     },
     mounted() {
-      console.dir(this.name);
-      console.log(this.name instanceof Object); // false
+    },
+    computed: {
+      newSchool() {
+        return this.obj.school + '!!!';
+      }
+    },
+    methods: {
+      onClick() {
+        console.log(123);
+        this.isShow = !this.isShow
+      }
     },
   }).$mount('#app');
   console.log(vue); // 成功引入

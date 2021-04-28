@@ -44,7 +44,7 @@ export class Observer {
     this.dep = new Dep()
     this.vmCount = 0
     // def()在lang.js中，是对definedProperty()的封装
-    def(value, '__ob__', this) // 给value添加一个__ob__属性，值为Observer实例
+    def(value, '__ob__', this) // 给value添加一个__ob__属性，值为Observer实例，这个属性不可枚举
     console.log(this);
     if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
@@ -111,7 +111,7 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * or the existing observer if the value already has one.
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
-  if (!isObject(value) || value instanceof VNode) {
+  if (!isObject(value) || value instanceof VNode) { // 如果value不是引用类型则返回，因为definedPorperty只对对象有效，这也意味着只有对象才会继续下一步(new Observer)，并拥有__ob__属性
     return
   }
   let ob: Observer | void
@@ -143,7 +143,7 @@ export function defineReactive (
   shallow?: boolean
 ) {
   const dep = new Dep() // dep.subs数组用来收集依赖
-
+  // console.log(obj[key],dep.id);
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
@@ -166,7 +166,7 @@ export function defineReactive (
       // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
       if (Dep.target) { // 这里为true说明在收集依赖的过程中，因此下一行代码的作用是收集依赖
         dep.depend()
-        if (childOb) {
+        if (childOb) { // 如果value的属性也是对象，则继续收集依赖(递归)
           childOb.dep.depend()
           if (Array.isArray(value)) {
             dependArray(value)

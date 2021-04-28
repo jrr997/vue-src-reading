@@ -144,8 +144,8 @@ export function mountComponent (
   el: ?Element,
   hydrating?: boolean
 ): Component {
-  vm.$el = el
-  if (!vm.$options.render) {
+  vm.$el = el // 挂载标志
+  if (!vm.$options.render) { // 没有render函数时的错误处理，正常情况下都会有render函数，不会走这里
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
@@ -165,7 +165,7 @@ export function mountComponent (
       }
     }
   }
-  callHook(vm, 'beforeMount')
+  callHook(vm, 'beforeMount') // beforeMount意味着已经有render函数
 
   let updateComponent
   /* istanbul ignore if */
@@ -188,7 +188,7 @@ export function mountComponent (
     }
   } else { // 这里只是赋值，未执行，会在new Watcher中执行
     updateComponent = () => {
-      vm._update(vm._render(), hydrating) // vm._render()返回vnode，这个过程中会访问vm中的数据，触发getter
+      vm._update(vm._render(), hydrating) // vm._render()返回vnode，这个过程中会访问vm中的数据，触发getter收集依赖
     }
   }
 

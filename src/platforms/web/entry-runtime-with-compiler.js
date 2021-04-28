@@ -15,14 +15,14 @@ const idToTemplate = cached(id => {
 })
 
 const mount = Vue.prototype.$mount
-Vue.prototype.$mount = function (
+Vue.prototype.$mount = function ( // 这个函数的作用是template编译成render函数，最后进行挂载(上面的mount)
   el?: string | Element,
   hydrating?: boolean
 ): Component {
   el = el && query(el)
 
   /* istanbul ignore if */
-  if (el === document.body || el === document.documentElement) {
+  if (el === document.body || el === document.documentElement) { // 不能挂载到body和html上
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
     )
@@ -31,7 +31,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
-  if (!options.render) {
+  if (!options.render) { // 没有render函数就把template编译成render函数
     let template = options.template
     if (template) {
       if (typeof template === 'string') {
@@ -62,7 +62,7 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
-      const { render, staticRenderFns } = compileToFunctions(template, {
+      const { render, staticRenderFns } = compileToFunctions(template, { // 上面是获取template，这里是编译template
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,

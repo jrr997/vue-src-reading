@@ -728,13 +728,13 @@
 
   Dep.prototype.depend = function depend () {
     if (Dep.target) {
-      Dep.target.addDep(this);
+      Dep.target.addDep(this); // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上
     }
   };
 
   Dep.prototype.notify = function notify () {
     // stabilize the subscriber list first
-    var subs = this.subs.slice();
+    var subs = this.subs.slice(); // subs中都是watcher
     if ( !config.async) {
       // subs aren't sorted in scheduler if not running async
       // we need to sort them now to make sure they fire in correct
@@ -742,7 +742,7 @@
       subs.sort(function (a, b) { return a.id - b.id; });
     }
     for (var i = 0, l = subs.length; i < l; i++) {
-      subs[i].update();
+      subs[i].update(); // 按顺序更新依赖
     }
   };
 
@@ -924,7 +924,7 @@
     this.dep = new Dep();
     this.vmCount = 0;
     // def()在lang.js中，是对definedProperty()的封装
-    def(value, '__ob__', this); // 给value添加一个__ob__属性，值为Observer实例
+    def(value, '__ob__', this); // 给value添加一个__ob__属性，值为Observer实例，这个属性不可枚举
     console.log(this);
     if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
@@ -990,7 +990,7 @@
    * or the existing observer if the value already has one.
    */
   function observe (value, asRootData) {
-    if (!isObject(value) || value instanceof VNode) {
+    if (!isObject(value) || value instanceof VNode) { // 如果value不是引用类型则返回，因为definedPorperty只对对象有效，这也意味着只有对象才会继续下一步(new Observer)，并拥有__ob__属性
       return
     }
     var ob;
@@ -1022,7 +1022,7 @@
     shallow
   ) {
     var dep = new Dep(); // dep.subs数组用来收集依赖
-
+    // console.log(obj[key],dep.id);
     var property = Object.getOwnPropertyDescriptor(obj, key);
     if (property && property.configurable === false) {
       return
@@ -1045,7 +1045,7 @@
         // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
         if (Dep.target) { // 这里为true说明在收集依赖的过程中，因此下一行代码的作用是收集依赖
           dep.depend();
-          if (childOb) {
+          if (childOb) { // 如果value的属性也是对象，则继续收集依赖(递归)
             childOb.dep.depend();
             if (Array.isArray(value)) {
               dependArray(value);
@@ -4020,8 +4020,8 @@
     el,
     hydrating
   ) {
-    vm.$el = el;
-    if (!vm.$options.render) {
+    vm.$el = el; // 挂载标志
+    if (!vm.$options.render) { // 没有render函数时的错误处理，正常情况下都会有render函数，不会走这里
       vm.$options.render = createEmptyVNode;
       {
         /* istanbul ignore if */
@@ -4041,7 +4041,7 @@
         }
       }
     }
-    callHook(vm, 'beforeMount');
+    callHook(vm, 'beforeMount'); // beforeMount意味着已经有render函数
 
     var updateComponent;
     /* istanbul ignore if */
@@ -4064,7 +4064,7 @@
       };
     } else { // 这里只是赋值，未执行，会在new Watcher中执行
       updateComponent = function () {
-        vm._update(vm._render(), hydrating); // vm._render()返回vnode，这个过程中会访问vm中的数据，触发getter
+        vm._update(vm._render(), hydrating); // vm._render()返回vnode，这个过程中会访问vm中的数据，触发getter收集依赖
       };
     }
 
@@ -4450,10 +4450,10 @@
     this.expression =  expOrFn.toString()
       ;
     // parse expression for getter
-    if (typeof expOrFn === 'function') { // 走这里
+    if (typeof expOrFn === 'function') { // 挂载时走这里
       this.getter = expOrFn;
     } else {
-      this.getter = parsePath(expOrFn);
+      this.getter = parsePath(expOrFn); // 这一步是把expOrFn变成funciton；在收集依赖时收集到的可能是计算属性等，此时根据名称找到对应的function
       if (!this.getter) {
         this.getter = noop;
          warn(
@@ -4467,7 +4467,7 @@
     // 执行this.get()
     this.value = this.lazy
       ? undefined
-      : this.get();
+      : this.get(); // 挂载时会执行this.getter()，即updateComponent()，执行时会访问到数据，因此触发数据的getter从而进行依赖的收集和重新收集
   };
 
   /**
@@ -4492,7 +4492,7 @@
         traverse(value);
       }
       popTarget();
-      this.cleanupDeps();
+      this.cleanupDeps(); // 更新依赖
     }
 
     return value
@@ -4503,10 +4503,10 @@
    */
   Watcher.prototype.addDep = function addDep (dep) { // 这里的this指的是watcher
     var id = dep.id;
-    if (!this.newDepIds.has(id)) {
+    if (!this.newDepIds.has(id)) { // 把dep放入Watcher实例中的newDeps数组中
       this.newDepIds.add(id);
       this.newDeps.push(dep);
-      if (!this.depIds.has(id)) {
+      if (!this.depIds.has(id)) { // 把Watcher实例放入Dep实例的subs数组中
         dep.addSub(this);
       }
     }
@@ -4515,11 +4515,11 @@
   /**
    * Clean up for dependency collection.
    */
-  Watcher.prototype.cleanupDeps = function cleanupDeps () {
+  Watcher.prototype.cleanupDeps = function cleanupDeps () { // 把新收集的依赖替换旧的依赖
     var i = this.deps.length;
     while (i--) {
       var dep = this.deps[i];
-      if (!this.newDepIds.has(dep.id)) {
+      if (!this.newDepIds.has(dep.id)) { // 保留还需要的依赖
         dep.removeSub(this);
       }
     }
@@ -4554,8 +4554,8 @@
    */
   Watcher.prototype.run = function run () {
     if (this.active) {
-      var value = this.get();
-      if (
+      var value = this.get(); // 这里从数据的getter中拿到变化后的值
+      if ( // 如果值发生了变化
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
@@ -5018,7 +5018,7 @@
         measure(("vue " + (vm._name) + " init"), startTag, endTag);
       }
 
-      if (vm.$options.el) { // 挂载
+      if (vm.$options.el) { // 挂载，挂载时收集依赖
         vm.$mount(vm.$options.el);
       }
     };
@@ -11906,14 +11906,14 @@
   });
 
   var mount = Vue.prototype.$mount;
-  Vue.prototype.$mount = function (
+  Vue.prototype.$mount = function ( // 这个函数的作用是template编译成render函数，最后进行挂载(上面的mount)
     el,
     hydrating
   ) {
     el = el && query(el);
 
     /* istanbul ignore if */
-    if (el === document.body || el === document.documentElement) {
+    if (el === document.body || el === document.documentElement) { // 不能挂载到body和html上
        warn(
         "Do not mount Vue to <html> or <body> - mount to normal elements instead."
       );
@@ -11922,7 +11922,7 @@
 
     var options = this.$options;
     // resolve template/el and convert to render function
-    if (!options.render) {
+    if (!options.render) { // 没有render函数就把template编译成render函数
       var template = options.template;
       if (template) {
         if (typeof template === 'string') {
@@ -11953,7 +11953,7 @@
           mark('compile');
         }
 
-        var ref = compileToFunctions(template, {
+        var ref = compileToFunctions(template, { // 上面是获取template，这里是编译template
           outputSourceRange: "development" !== 'production',
           shouldDecodeNewlines: shouldDecodeNewlines,
           shouldDecodeNewlinesForHref: shouldDecodeNewlinesForHref,

@@ -30,13 +30,13 @@ export default class Dep {
 
   depend () {
     if (Dep.target) {
-      Dep.target.addDep(this)
+      Dep.target.addDep(this) // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上
     }
   }
 
   notify () {
     // stabilize the subscriber list first
-    const subs = this.subs.slice()
+    const subs = this.subs.slice() // subs中都是watcher
     if (process.env.NODE_ENV !== 'production' && !config.async) {
       // subs aren't sorted in scheduler if not running async
       // we need to sort them now to make sure they fire in correct
@@ -44,7 +44,7 @@ export default class Dep {
       subs.sort((a, b) => a.id - b.id)
     }
     for (let i = 0, l = subs.length; i < l; i++) {
-      subs[i].update()
+      subs[i].update() // 按顺序更新依赖
     }
   }
 }

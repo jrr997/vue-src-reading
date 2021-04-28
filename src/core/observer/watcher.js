@@ -77,10 +77,10 @@ export default class Watcher {
       ? expOrFn.toString()
       : ''
     // parse expression for getter
-    if (typeof expOrFn === 'function') { // 走这里
+    if (typeof expOrFn === 'function') { // 挂载时走这里
       this.getter = expOrFn
     } else {
-      this.getter = parsePath(expOrFn)
+      this.getter = parsePath(expOrFn) // 这一步是把expOrFn变成funciton；在收集依赖时收集到的可能是计算属性等，此时根据名称找到对应的function
       if (!this.getter) {
         this.getter = noop
         process.env.NODE_ENV !== 'production' && warn(
@@ -94,7 +94,7 @@ export default class Watcher {
     // 执行this.get()
     this.value = this.lazy
       ? undefined
-      : this.get()
+      : this.get() // 挂载时会执行this.getter()，即updateComponent()，执行时会访问到数据，因此触发数据的getter从而进行依赖的收集和重新收集
   }
 
   /**
@@ -119,7 +119,7 @@ export default class Watcher {
         traverse(value)
       }
       popTarget()
-      this.cleanupDeps()
+      this.cleanupDeps() // 更新依赖
     }
 
     return value
@@ -130,10 +130,10 @@ export default class Watcher {
    */
   addDep (dep: Dep) { // 这里的this指的是watcher
     const id = dep.id
-    if (!this.newDepIds.has(id)) {
+    if (!this.newDepIds.has(id)) { // 把dep放入Watcher实例中的newDeps数组中
       this.newDepIds.add(id)
       this.newDeps.push(dep)
-      if (!this.depIds.has(id)) {
+      if (!this.depIds.has(id)) { // 把Watcher实例放入Dep实例的subs数组中
         dep.addSub(this)
       }
     }
@@ -142,11 +142,11 @@ export default class Watcher {
   /**
    * Clean up for dependency collection.
    */
-  cleanupDeps () {
+  cleanupDeps () { // 把新收集的依赖替换旧的依赖
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
-      if (!this.newDepIds.has(dep.id)) {
+      if (!this.newDepIds.has(dep.id)) { // 保留还需要的依赖
         dep.removeSub(this)
       }
     }
@@ -181,8 +181,8 @@ export default class Watcher {
    */
   run () {
     if (this.active) {
-      const value = this.get()
-      if (
+      const value = this.get() // 这里从数据的getter中拿到变化后的值
+      if ( // 如果值发生了变化
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
