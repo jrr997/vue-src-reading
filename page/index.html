@@ -10,44 +10,31 @@
 </head>
 <body>
  <div id="app">
-   <template v-if="isShow">
-    <p>{{name}}</p><p>school:{{newSchool}}</p>
-  </template>
-  <template v-else>
-    <p>{{ age }}</p>
-  </template>
-  <button v-on:click="isShow = !isShow">show</button>
-  <button v-on:click="age += 1">Add 1</button>
+  <p>{{name}}</p>
   </div>
 </body>
 <script>
   const vue = new Vue({
     data() {
       return {
-        isShow: false,
-        name: 'zackchang', // dep.id:3
-        age: 20, // 4
-        obj: { // 5
-          school: 'gzhu' //7
+        isShow: true, // 3
+        name: 'zackchang', // dep.id:4
+        age: 20, // 5
+        obj: { // 6 7 这里有两个dep是因为 obj.__ob__中也有一个Dep实例，obj在definedReactive时也新建了一个Dep实例，后者是用来存储依赖的dep
+          // school: 'gzhu' //8
         }
       }
     },
-    created() {
-      console.log('created');
-    },
+    // created() {
+    //   console.log('created');
+    // },
     mounted() {
     },
-    computed: {
-      newSchool() {
-        return this.obj.school + '!!!';
-      }
-    },
-    methods: {
-      onClick() {
-        console.log(123);
-        this.isShow = !this.isShow
-      }
-    },
+    // computed: {
+    //   newSchool() {
+    //     return this.obj.school + '!!!';
+    //   }
+    // },
   }).$mount('#app');
   console.log(vue); // 成功引入
 </script>
