@@ -166,8 +166,8 @@ export default class Watcher {
    */
   update () {
     /* istanbul ignore else */
-    if (this.lazy) {
-      this.dirty = true
+    if (this.lazy) { // computed watcher的lazy === true
+      this.dirty = true // 为true时，computed getter中会再次计算值(更新缓存)
     } else if (this.sync) {
       this.run()
     } else {

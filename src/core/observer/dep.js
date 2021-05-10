@@ -30,7 +30,7 @@ export default class Dep {
 
   depend () {
     if (Dep.target) {
-      Dep.target.addDep(this) // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上
+      Dep.target.addDep(this) // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上；同时把watcher加入dep.subs数组
     }
   }
 

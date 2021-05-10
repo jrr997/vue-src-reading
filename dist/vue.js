@@ -728,7 +728,7 @@
 
   Dep.prototype.depend = function depend () {
     if (Dep.target) {
-      Dep.target.addDep(this); // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上
+      Dep.target.addDep(this); // this为Dep的实例，这里吧Dep的实例加到Watcher的实例上；同时把watcher加入dep.subs数组
     }
   };
 
@@ -925,7 +925,7 @@
     this.vmCount = 0;
     // def()在lang.js中，是对definedProperty()的封装
     def(value, '__ob__', this); // 给value添加一个__ob__属性，值为Observer实例，这个属性不可枚举
-    console.log(this);
+    // console.log(this);
     if (Array.isArray(value)) { // 如果value是数组就走这里，否则走this.walk
       if (hasProto) {
         protoAugment(value, arrayMethods);
@@ -1035,7 +1035,7 @@
       val = obj[key];
     }
 
-    var childOb = !shallow && observe(val); // 初始化时走这里，继续监听val中的属性(递归)
+    var childOb = !shallow && observe(val); // 初始化时走这里，继续监听val中的属性(递归)； childOb为true说明val是引用类型
     Object.defineProperty(obj, key, {
       enumerable: true,
       configurable: true,
@@ -1045,9 +1045,9 @@
         // 在initState时并不会执行dep.depend()收集依赖，只有在渲染时收集
         if (Dep.target) { // 这里为true说明在收集依赖的过程中，因此下一行代码的作用是收集依赖
           dep.depend();
-          if (childOb) { // 如果value的属性也是对象，则继续收集依赖(递归)
+          if (childOb) { // 如果value是引用类型，则收集依赖
             childOb.dep.depend();
-            if (Array.isArray(value)) {
+            if (Array.isArray(value)) { // 数组走这里
               dependArray(value);
             }
           }
@@ -4539,8 +4539,8 @@
    */
   Watcher.prototype.update = function update () {
     /* istanbul ignore else */
-    if (this.lazy) {
-      this.dirty = true;
+    if (this.lazy) { // computed watcher的lazy === true
+      this.dirty = true; // 为true时，computed getter中会再次计算值(更新缓存)
     } else if (this.sync) {
       this.run();
     } else {
@@ -4760,7 +4760,7 @@
     }
   }
 
-  var computedWatcherOptions = { lazy: true };
+  var computedWatcherOptions = { lazy: true }; // 这是computed watcher的标志
 
   function initComputed (vm, computed) {
     // $flow-disable-line
@@ -4770,7 +4770,7 @@
 
     for (var key in computed) {
       var userDef = computed[key];
-      var getter = typeof userDef === 'function' ? userDef : userDef.get;
+      var getter = typeof userDef === 'function' ? userDef : userDef.get; // 这就是用户写的computed function，computed本质上是一个getter
       if ( getter == null) {
         warn(
           ("Getter is missing for computed property \"" + key + "\"."),
@@ -4808,8 +4808,8 @@
     key,
     userDef
   ) {
-    var shouldCache = !isServerRendering();
-    if (typeof userDef === 'function') {
+    var shouldCache = !isServerRendering(); // true
+    if (typeof userDef === 'function') { // 计算属性可以是function或者object，object中包含get和set两个function
       sharedPropertyDefinition.get = shouldCache
         ? createComputedGetter(key)
         : createGetterInvoker(userDef);
@@ -4831,18 +4831,19 @@
         );
       };
     }
-    Object.defineProperty(target, key, sharedPropertyDefinition);
+    Object.defineProperty(target, key, sharedPropertyDefinition); // sharedPropertyDefinition是一个对象，有get和set
   }
 
+  // 缓存在getter中实现
   function createComputedGetter (key) {
     return function computedGetter () {
-      var watcher = this._computedWatchers && this._computedWatchers[key];
+      var watcher = this._computedWatchers && this._computedWatchers[key]; // this是一个Vue实例代理，
       if (watcher) {
-        if (watcher.dirty) {
-          watcher.evaluate();
+        if (watcher.dirty) { // 还没计算结果时，dirty === true
+          watcher.evaluate(); // 计算结果
         }
         if (Dep.target) {
-          watcher.depend();
+          watcher.depend(); // 收集依赖
         }
         return watcher.value
       }

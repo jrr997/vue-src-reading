@@ -169,7 +169,7 @@ export function getData (data: Function, vm: Component): any {
   }
 }
 
-const computedWatcherOptions = { lazy: true }
+const computedWatcherOptions = { lazy: true } // 这是computed watcher的标志
 
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
@@ -179,7 +179,7 @@ function initComputed (vm: Component, computed: Object) {
 
   for (const key in computed) {
     const userDef = computed[key]
-    const getter = typeof userDef === 'function' ? userDef : userDef.get
+    const getter = typeof userDef === 'function' ? userDef : userDef.get // 这就是用户写的computed function，computed本质上是一个getter
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
         `Getter is missing for computed property "${key}".`,
@@ -217,8 +217,8 @@ export function defineComputed (
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering()
-  if (typeof userDef === 'function') {
+  const shouldCache = !isServerRendering() // true
+  if (typeof userDef === 'function') { // 计算属性可以是function或者object，object中包含get和set两个function
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
       : createGetterInvoker(userDef)
@@ -240,18 +240,19 @@ export function defineComputed (
       )
     }
   }
-  Object.defineProperty(target, key, sharedPropertyDefinition)
+  Object.defineProperty(target, key, sharedPropertyDefinition) // sharedPropertyDefinition是一个对象，有get和set
 }
 
+// 缓存在getter中实现
 function createComputedGetter (key) {
   return function computedGetter () {
-    const watcher = this._computedWatchers && this._computedWatchers[key]
+    const watcher = this._computedWatchers && this._computedWatchers[key] // this是一个Vue实例代理，
     if (watcher) {
-      if (watcher.dirty) {
-        watcher.evaluate()
+      if (watcher.dirty) { // 还没计算结果时，dirty === true
+        watcher.evaluate() // 计算结果
       }
       if (Dep.target) {
-        watcher.depend()
+        watcher.depend() // 收集依赖
       }
       return watcher.value
     }
