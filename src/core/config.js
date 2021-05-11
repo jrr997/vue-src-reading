@@ -55,7 +55,8 @@ export default ({
   /**
    * Whether to enable devtools
    */
-  devtools: process.env.NODE_ENV !== 'production',
+  // devtools: process.env.NODE_ENV !== 'production',
+  devtools: true,
 
   /**
    * Whether to record perf

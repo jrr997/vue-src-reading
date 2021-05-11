@@ -12,6 +12,7 @@ export function initAssetRegisters (Vue: GlobalAPI) {
       id: string,
       definition: Function | Object
     ): Function | Object | void {
+      console.log(definition);
       if (!definition) {
         return this.options[type + 's'][id]
       } else {
@@ -19,7 +20,7 @@ export function initAssetRegisters (Vue: GlobalAPI) {
         if (process.env.NODE_ENV !== 'production' && type === 'component') {
           validateComponentName(id)
         }
-        if (type === 'component' && isPlainObject(definition)) {
+        if (type === 'component' && isPlainObject(definition)) { // isPlainObject用于对象的判断
           definition.name = definition.name || id
           definition = this.options._base.extend(definition)
         }

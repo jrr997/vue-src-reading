@@ -46,7 +46,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = (obj) => {
     observe(obj)
     return obj
   }
@@ -66,4 +66,5 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   initMixin(Vue)
   initExtend(Vue)
   initAssetRegisters(Vue)
+  console.dir(Vue);
 }

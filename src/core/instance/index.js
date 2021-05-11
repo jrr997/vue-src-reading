@@ -21,6 +21,7 @@ function Vue (options) {
 }
 // console.log(Vue.nextTick); // undefined,证明了目前的Vue只是一个干净的function
 
+/* 给Vue.prottype定义各种属性和方法 */
 initMixin(Vue) // 创建了一个function：Vue.prototype._init，因此上面能用this._init()
 stateMixin(Vue) // Vue.prototype上增加了$delete、$set、$watch方法，初始化了$data、$props = undefined
 eventsMixin(Vue) // Vue.prototype上增加了4个事件相关的方法：$emit、$on、$off和$once

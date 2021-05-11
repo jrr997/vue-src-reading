@@ -296,7 +296,7 @@ function initMethods (vm: Component, methods: Object) {
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
-    if (Array.isArray(handler)) {
+    if (Array.isArray(handler)) { // watch属性这可以是一个数组;数据变化时，数组中的每个function都会被会回调
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
       }
@@ -312,7 +312,7 @@ function createWatcher (
   handler: any,
   options?: Object
 ) {
-  if (isPlainObject(handler)) {
+  if (isPlainObject(handler)) { //  watch属性值可以是对象，里面包含回调函数(key为handler)和一些options
     options = handler
     handler = handler.handler
   }
@@ -359,7 +359,7 @@ export function stateMixin (Vue: Class<Component>) {
     }
     options = options || {}
     options.user = true
-    const watcher = new Watcher(vm, expOrFn, cb, options)
+    const watcher = new Watcher(vm, expOrFn, cb, options) // 收集依赖
     if (options.immediate) {
       try {
         cb.call(vm, watcher.value)
@@ -367,7 +367,7 @@ export function stateMixin (Vue: Class<Component>) {
         handleError(error, vm, `callback for immediate watcher "${watcher.expression}"`)
       }
     }
-    return function unwatchFn () {
+    return function unwatchFn () { // $watch可以用来取消监听
       watcher.teardown()
     }
   }

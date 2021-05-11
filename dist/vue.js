@@ -400,7 +400,8 @@
     /**
      * Whether to enable devtools
      */
-    devtools: "development" !== 'production',
+    // devtools: "development" !== 'production',
+    devtools: true,
 
     /**
      * Whether to record perf
@@ -4887,7 +4888,7 @@
   function initWatch (vm, watch) {
     for (var key in watch) {
       var handler = watch[key];
-      if (Array.isArray(handler)) {
+      if (Array.isArray(handler)) { // watch属性这可以是一个数组;数据变化时，数组中的每个function都会被会回调
         for (var i = 0; i < handler.length; i++) {
           createWatcher(vm, key, handler[i]);
         }
@@ -4903,7 +4904,7 @@
     handler,
     options
   ) {
-    if (isPlainObject(handler)) {
+    if (isPlainObject(handler)) { //  watch属性值可以是对象，里面包含回调函数(key为handler)和一些options
       options = handler;
       handler = handler.handler;
     }
@@ -4950,7 +4951,7 @@
       }
       options = options || {};
       options.user = true;
-      var watcher = new Watcher(vm, expOrFn, cb, options);
+      var watcher = new Watcher(vm, expOrFn, cb, options); // 收集依赖
       if (options.immediate) {
         try {
           cb.call(vm, watcher.value);
@@ -4958,7 +4959,7 @@
           handleError(error, vm, ("callback for immediate watcher \"" + (watcher.expression) + "\""));
         }
       }
-      return function unwatchFn () {
+      return function unwatchFn () { // $watch可以用来取消监听
         watcher.teardown();
       }
     };
@@ -5097,6 +5098,7 @@
   }
   // console.log(Vue.nextTick); // undefined,证明了目前的Vue只是一个干净的function
 
+  /* 给Vue.prottype定义各种属性和方法 */
   initMixin(Vue); // 创建了一个function：Vue.prototype._init，因此上面能用this._init()
   stateMixin(Vue); // Vue.prototype上增加了$delete、$set、$watch方法，初始化了$data、$props = undefined
   eventsMixin(Vue); // Vue.prototype上增加了4个事件相关的方法：$emit、$on、$off和$once
@@ -5240,6 +5242,7 @@
         id,
         definition
       ) {
+        console.log(definition);
         if (!definition) {
           return this.options[type + 's'][id]
         } else {
@@ -5247,7 +5250,7 @@
           if ( type === 'component') {
             validateComponentName(id);
           }
-          if (type === 'component' && isPlainObject(definition)) {
+          if (type === 'component' && isPlainObject(definition)) { // isPlainObject用于对象的判断
             definition.name = definition.name || id;
             definition = this.options._base.extend(definition);
           }
@@ -5445,6 +5448,7 @@
     initMixin$1(Vue);
     initExtend(Vue);
     initAssetRegisters(Vue);
+    console.dir(Vue);
   }
 
   initGlobalAPI(Vue); // 在Vue构造函数上增加静态属性和方法

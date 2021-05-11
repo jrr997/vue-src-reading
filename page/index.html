@@ -10,34 +10,52 @@
 </head>
 <body>
  <div id="app">
-  <p>{{name}}</p>
-  <p>{{newSchool}}</p>
+    <Child :test='test'></Child>
   </div>
 </body>
 <script>
-  const vue = new Vue({
-    data() {
-      return {
-        isShow: true, // 3
-        name: 'zackchang', // dep.id:4
-        age: 20, // 5
-        obj: { // 6 7 这里有两个dep是因为 obj.__ob__中也有一个Dep实例，obj在definedReactive时也新建了一个Dep实例，后者是用来存储依赖的dep
-          school: 'gzhu' //8
+  // 子组件
+  const child = {
+    template: `<div id="child"><p>{{ test }}</p></div>`,
+    props: ['test'],
+    watch: { // watch属性这可以是一个数组;
+      test: [
+        function(newVal,oldVal) {
+          console.log(oldVal,newVal);
         },
-        arr: [1,2,3]
+        function() {
+          console.log(123);
+        }]
+    }
+  }
+
+  // 父组件
+  const vue = new Vue({
+    components:{
+      child
+    },
+    data() {
+      let msg = 'hello';
+      console.log(msg);
+      window.setTimeout(() => {
+        msg = 'bye'
+        console.log(msg);
+      }, 3000)
+      return {
+        test:'test123'
       }
     },
-    // created() {
-    //   console.log('created');
-    // },
-    mounted() {
-    },
-    computed: {
-      newSchool() {
-        return this.obj.school + '!!!';
+    watch: {
+      msg: {
+        // immediate:true,
+        handler: function(newVal, oldVal) {
+          console.log(newVal, oldVal);
+        }
       }
-    },
+    }
   }).$mount('#app');
   console.log(vue); // 成功引入
+  // vue._data.test = 123;
+  console.log(vue._data.test);
 </script>
 </html>
